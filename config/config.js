@@ -1,22 +1,73 @@
-require("dotenv").config();
+const express = require('express')
 
-const development = {
-  username: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_DATABASE,
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  dialect: process.env.DB_DIALECT
-}
+const app = express();
 
-const production = {
-  use_env_variable: "POSTGRES_URL",
-  dialect: "postgres",
-  dialectOptions:{
-    ssl: {
-      rejectUnauthorized: false
-    }
+const PORT = 3000;
+
+const db = require('./models');
+
+
+app.use(express.json());
+
+app.use(express.urlencoded({ extended: false }));
+
+
+app.listen(PORT, () => {
+
+  console.log(`Server is running on port ${PORT}`);
+
+})
+
+
+db.sequelize.sync()
+
+  .then((result) => {
+
+    app.listen(3000, () => {
+
+      console.log('Server is running on port 3000');
+
+    });
+
+  })
+
+  .catch((err) => {
+
+    console.log(err)
+  })
+
+
+app.post('/komik', async (req, res) => {
+
+  const data = req.body;
+
+  try {
+
+    const komik = await db.Komik.create(data);
+
+    res.send(komik);
+
+  } catch (error) {
+
+    res.send(error)
+
   }
-};
 
-module.exports = { development, production };
+})
+
+
+app.get('/komik', async (req, res) => {
+
+  try {
+
+    const komik = await db.Komik.findAll();
+
+    res.send(komik);
+
+  } catch (error) {
+
+    res.send(error)
+
+  }
+
+})
